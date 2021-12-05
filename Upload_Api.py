@@ -1,6 +1,6 @@
 
 import os
-from flask import Flask, flash, request, redirect, url_for , jsonify
+from flask import Flask, flash, request, redirect, url_for , jsonify , render_template
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token , get_jwt_identity
 from werkzeug.utils import secure_filename
 from Main import Runnig_Crypt_process
@@ -20,7 +20,11 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/UploadFile', methods=['GET', 'POST'])
+@jwt_required()
 def upload_file():
+
+    current_jwt = get_jwt_identity()
+    #jsonify(ok=current_jwt), 200
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -41,15 +45,7 @@ def upload_file():
 
             return redirect(url_for("upload_file",
                                     filename=filename))
-    return '''
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-    '''
+    return render_template("index.html")
 
 
 
@@ -58,13 +54,6 @@ def getJwt():
     user="USER_ID_To_SET_and_other_informations"
     access_token = create_access_token(identity = user)
     return jsonify(access_token=access_token)
-
-@app.route('/protected',methods=["GET"])
-@jwt_required()
-def Protected():
-    current_jwt = get_jwt_identity()
-    return jsonify(ok=current_jwt), 200
-    
 
 
 if __name__== "__main__":
